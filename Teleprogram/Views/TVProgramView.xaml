@@ -1,0 +1,60 @@
+﻿<UserControl x:Class="Teleprogram.Views.TVProgramView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="500" d:DesignWidth="850">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="Фільтри передач" Margin="0,0,0,10" Grid.Row="0">
+            <StackPanel>
+                <UniformGrid Rows="2" Columns="4" Margin="5">
+                    <Label>День тижня:</Label>
+                    <ComboBox Width="150" Margin="0,3,0,3" Name="DayOfWeekComboBox"/>
+                    <Label>Час:</Label>
+                    <ComboBox Width="150" Margin="0,3,0,3" Name="TimeComboBox"/>
+                    <Label>Канал:</Label>
+                    <ComboBox Width="150" Margin="0,3,0,3" Name="ChannelComboBox"/>
+                    <Label>Жанр:</Label>
+                    <ComboBox Width="150" Margin="0,3,0,3" Name="GenreComboBox"/>
+                </UniformGrid>
+                <StackPanel HorizontalAlignment="Right">
+                    <Button Content="🔍 Знайти" Width="100" Margin="10" Name="SearchButton"/>
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="📃 Список телепередач за фільтром" Grid.Row="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <DataGrid AutoGenerateColumns="False" Grid.Row="0"
+                          Name="TVShowsDataGrid"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Margin="5">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="📆 Дата" Width="*" Binding="{Binding Date}"/>
+                        <DataGridTextColumn Header="🕒 Час" Width="*" Binding="{Binding Time}"/>
+                        <DataGridTextColumn Header="🖥️ Канал" Width="*" Binding="{Binding Channel}"/>
+                        <DataGridTextColumn Header="🎭 Жанр" Width="*" Binding="{Binding Genre}"/>
+                        <DataGridTextColumn Header="Назва передачі" Width="2*" Binding="{Binding Title}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
+                    <Button Content="➕ Додати до обраного" Margin="5" Name="AddToFavoritesButton"/>
+                    <Button Content="🧽 Очистити фільтр" Margin="5" Name="ClearFilterButton"/>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+    </Grid>
+</UserControl>
