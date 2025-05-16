@@ -4,7 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
-             d:DesignHeight="500" d:DesignWidth="850">
+             d:DesignHeight="500" d:DesignWidth="850"
+             xmlns:vm="clr-namespace:Teleprogram.ViewModels"
+             d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
+             DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}, Path=DataContext}">
     <Grid Margin="10">
         <GroupBox Header="📌 Обрані телепередачі користувача">
             <Grid>
@@ -16,7 +19,9 @@
                           Name="FavoriteShowsDataGrid"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
-                          Margin="5">
+                          Margin="5"
+                          ItemsSource="{Binding FavoritesShows}"
+                          SelectedItem="{Binding SelectedShow}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="📆 Дата" Width="*" Binding="{Binding Date}"/>
                         <DataGridTextColumn Header="🕒 Час" Width="*" Binding="{Binding Time}"/>
@@ -26,8 +31,7 @@
                     </DataGrid.Columns>
                 </DataGrid>
                 <StackPanel Orientation="Horizontal" Margin="5" HorizontalAlignment="Right" Grid.Row="1">
-                    <Button Content="💾 Зберегти список" Margin="5" Name="SaveFavoritesButton"/>
-                    <Button Content="🗑️ Видалити з обраних" Margin="5" Name="RemoveFromFavoritesButton"/>
+                    <Button Content="🗑️ Видалити з обраних" Margin="5" Name="RemoveFromFavoritesButton" Command="{Binding RemoveCommand}"/>
                 </StackPanel>
             </Grid>
         </GroupBox>

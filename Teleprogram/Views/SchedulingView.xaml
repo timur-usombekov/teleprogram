@@ -4,12 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
-             d:DesignHeight="500" d:DesignWidth="850">
+             d:DesignHeight="500" d:DesignWidth="850"
+             DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}, Path=DataContext}">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+
         <GroupBox Header="📺 Додавання до плану" Grid.Row="0">
             <StackPanel>
                 <Grid Margin="5">
@@ -24,40 +26,37 @@
                     </Grid.RowDefinitions>
 
                     <Label Grid.Row="0" Grid.Column="0" Content="Передача:" Margin="5"/>
-                    <ComboBox Grid.Row="0" Grid.Column="1" Width="200" Margin="5" Name="ShowToScheduleComboBox"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1" Width="300" Margin="5"
+                              ItemsSource="{Binding FavoritesShows}"
+                              SelectedItem="{Binding SelectedFavorite}"
+                              DisplayMemberPath="Title"/>
 
                     <Label Grid.Row="1" Grid.Column="0" Content="Дата:" Margin="5"/>
-                    <DatePicker Grid.Row="1" Grid.Column="1" Margin="5" Name="ScheduleDatePicker"/>
+                    <DatePicker Grid.Row="1" Grid.Column="1" Margin="5"
+                                SelectedDate="{Binding PlannedDate, Mode=TwoWay}"/>
 
                     <Label Grid.Row="2" Grid.Column="0" Content="Час:" Margin="5"/>
-                    <TextBox Grid.Row="2" Grid.Column="1" Width="100" Margin="5" Text="18:00" Name="ScheduleTimeTextBox"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Width="100" Margin="5"
+                             Text="{Binding PlannedTime, Mode=TwoWay}"/>
                 </Grid>
-                <Button Content="➕ Додати до плану" Width="150" Margin="10" Name="AddToScheduleButton"/>
+
+                <Button Content="➕ Додати до плану"
+                        Width="150"
+                        Margin="10"
+                        Command="{Binding AddToPlanCommand}"/>
             </StackPanel>
         </GroupBox>
 
-        <GroupBox Header="📝 Заплановані телепередачі" Margin="0,10,0,0" Grid.Row="1">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <DataGrid AutoGenerateColumns="False" Grid.Row="0"
-                          Name="ScheduledShowsDataGrid"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Stretch"
-                          Margin="5">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="📆 Дата" Width="*" Binding="{Binding Date}"/>
-                        <DataGridTextColumn Header="🕒 Час" Width="*" Binding="{Binding Time}"/>
-                        <DataGridTextColumn Header="Назва передачі" Width="2*" Binding="{Binding Title}"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="5" Grid.Row="1">
-                    <Button Content="🗑️ Видалити" Margin="5" Name="RemoveFromScheduleButton"/>
-                    <Button Content="💾 Зберегти план" Margin="5" Name="SaveScheduleButton"/>
-                </StackPanel>
-            </Grid>
+        <GroupBox Header="📝 Заплановані телепередачі" Grid.Row="1">
+            <DataGrid AutoGenerateColumns="False"
+                      ItemsSource="{Binding PlannedShows}"
+                      Margin="5">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="📆 Дата" Binding="{Binding Date}" Width="*"/>
+                    <DataGridTextColumn Header="🕒 Час" Binding="{Binding Time}" Width="*"/>
+                    <DataGridTextColumn Header="Назва передачі" Binding="{Binding Title}" Width="2*"/>
+                </DataGrid.Columns>
+            </DataGrid>
         </GroupBox>
     </Grid>
 </UserControl>
