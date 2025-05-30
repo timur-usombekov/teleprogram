@@ -1,18 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace Teleprogram.Models
 {
     public class TvShow
     {
+        [JsonPropertyName("date")]
         public DateTime Date { get; set; }
-        public string Time => Date.ToString("HH:mm");
-        public string Channel { get; set; }
-        public string Genre { get; set; }
-        public string Title { get; set; }
 
+        [JsonIgnore]
+        public string Time => Date.ToString("HH:mm");
+
+        [JsonPropertyName("channel")]
+        public TVChannel Channel { get; set; }
+
+        [JsonPropertyName("genre")]
+        public string Genre { get; set; }
+
+        [JsonPropertyName("title")]
+        public string Title { get; set; }
     }
 }

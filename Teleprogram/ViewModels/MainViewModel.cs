@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Windows;
 using System.Windows.Input;
 using Teleprogram.Commands;
 using Teleprogram.Models;
@@ -10,32 +13,39 @@ namespace Teleprogram.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+        #region Collections
         public ObservableCollection<TvShow> AllShows { get; set; } = new();
         public ObservableCollection<TvShow> FilteredShows { get; set; } = new();
         public ObservableCollection<TvShow?> FavoritesShows { get; set; } = new();
-        public ObservableCollection<TvShow> PlannedShows { get; set; } = new();
+        public ObservableCollection<PlannedShow> PlannedShows { get; set; } = new(); 
 
-        public ObservableCollection<string> Channels { get; set; } = new();
+        public ObservableCollection<TVChannel> ChannelList { get; set; } = new(); 
         public ObservableCollection<string> Genres { get; set; } = new();
         public ObservableCollection<string> DaysOfWeek { get; set; } = new();
         public ObservableCollection<string> Times { get; set; } = new();
+        # endregion Collections
 
         public string? SelectedDay { get; set; }
         public string? SelectedTime { get; set; }
-        public string? SelectedChannel { get; set; }
+        public TVChannel? SelectedChannel { get; set; } 
         public string? SelectedGenre { get; set; }
+
         public TvShow? SelectedShow { get; set; }
-
-
         public TvShow? SelectedFavorite { get; set; }
+        public PlannedShow? SelectedPlannedShow { get; set; }
+
         public DateTime PlannedDate { get; set; } = DateTime.Today;
         public string PlannedTime { get; set; } = "18:00";
-
+        
+        #region ICommands
         public ICommand SearchCommand { get; set; }
         public ICommand ClearCommand { get; set; }
         public ICommand FavoriteCommand { get; set; }
         public ICommand RemoveCommand { get; set; }
         public ICommand AddToPlanCommand { get; set; }
+        public ICommand ChannelInfoCommand { get; set; }
+        public ICommand RemovePlannedShowCommand { get; }
+        #endregion ICommands
 
         public MainViewModel()
         {
@@ -44,25 +54,38 @@ namespace Teleprogram.ViewModels
             FavoriteCommand = new RelayCommand(MakeFavorite);
             RemoveCommand = new RelayCommand(RemoveFavorite);
             AddToPlanCommand = new RelayCommand(AddToPlan);
+            ChannelInfoCommand = new RelayCommand(GetChannelDescription);
+            RemovePlannedShowCommand = new RelayCommand(RemovePlannedShow);
 
-            LoadMockData();
+            LoadDataFromJson();
             PopulateFilters();
             FilterShows();
         }
 
-        private void LoadMockData()
+
+        private void LoadDataFromJson()
         {
-            AllShows.Add(new TvShow { Date = DateTime.Today.AddHours(9), Channel = "1+1", Genre = "Новини", Title = "Ранкові новини" });
-            AllShows.Add(new TvShow { Date = DateTime.Today.AddHours(20), Channel = "ICTV", Genre = "Фільм", Title = "Термінатор" });
-            AllShows.Add(new TvShow { Date = DateTime.Today.AddHours(18), Channel = "СТБ", Genre = "Серіал", Title = "Кріпосна" });
-            AllShows.Add(new TvShow { Date = DateTime.Today.AddDays(1).AddHours(18), Channel = "1+1", Genre = "Спорт", Title = "Футбол LIVE" });
-            AllShows.Add(new TvShow { Date = DateTime.Today.AddDays(2).AddHours(21), Channel = "Новий", Genre = "Фільм", Title = "Гаррі Поттер і філософський камінь" });
-            AllShows.Add(new TvShow { Date = DateTime.Today.AddDays(3).AddHours(8), Channel = "ICTV", Genre = "Новини", Title = "Ранковий випуск новин" });
-            AllShows.Add(new TvShow { Date = DateTime.Today.AddDays(3).AddHours(19), Channel = "СТБ", Genre = "Серіал", Title = "Таємниці" });
-            AllShows.Add(new TvShow { Date = DateTime.Today.AddDays(4).AddHours(22), Channel = "Новий", Genre = "Фільм", Title = "Володар перснів: Дві вежі" });
-            AllShows.Add(new TvShow { Date = DateTime.Today.AddDays(5).AddHours(17), Channel = "1+1", Genre = "Спорт", Title = "Бокс: Чемпіонський бій" });
-            AllShows.Add(new TvShow { Date = DateTime.Today.AddDays(6).AddHours(14), Channel = "СТБ", Genre = "Інше", Title = "Документальний фільм: Природа Карпат" });
-            AllShows.Add(new TvShow { Date = DateTime.Today.AddDays(6).AddHours(10), Channel = "ICTV", Genre = "Новини", Title = "Тижневий дайджест" });
+            string path = "tvshows.json";
+
+            if (!File.Exists(path))
+                return;
+
+            try
+            {
+                string json = File.ReadAllText(path, System.Text.Encoding.UTF8);
+                var shows = JsonSerializer.Deserialize<List<TvShow>>(json);
+
+                if (shows != null)
+                {
+                    AllShows.Clear();
+                    foreach (var show in shows)
+                        AllShows.Add(show);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ex JSON: {ex.Message}");
+            }
         }
 
         private void PopulateFilters()
@@ -75,16 +98,23 @@ namespace Teleprogram.ViewModels
             DaysOfWeek.Add("Субота");
             DaysOfWeek.Add("Неділя");
 
-            for (int i = 0; i < 24; i++)
-            {
-                Times.Add(i.ToString("D2") + ":00");
-            }
+            /*for (int i = 0; i < 24; i++)
+                Times.Add(i.ToString("D2") + ":00");*/
 
-            var allChannels = AllShows.Select(s => s.Channel).Distinct();
+            Times.Add("00:00 - 06:00");
+            Times.Add("06:00 - 12:00");
+            Times.Add("12:00 - 18:00");
+            Times.Add("18:00 - 23:59");
+
+            var allChannels = AllShows.Select(s => s.Channel)
+                                      .DistinctBy(c => c.Name)
+                                      .OrderBy(c => c.Name);
+            ChannelList.Clear();
             foreach (var ch in allChannels)
-                Channels.Add(ch);
+                ChannelList.Add(ch);
 
             var allGenres = AllShows.Select(s => s.Genre).Distinct();
+            Genres.Clear();
             foreach (var g in allGenres)
                 Genres.Add(g);
         }
@@ -100,10 +130,19 @@ namespace Teleprogram.ViewModels
             }
 
             if (!string.IsNullOrEmpty(SelectedTime))
-                filtered = filtered.Where(s => s.Time == SelectedTime);
+            {
+                var parts = SelectedTime.Split('-');
+                if (parts.Length == 2 &&
+                    TimeSpan.TryParse(parts[0].Trim(), out var from) &&
+                    TimeSpan.TryParse(parts[1].Trim(), out var to))
+                {
+                    filtered = filtered.Where(s =>
+                        s.Date.TimeOfDay >= from && s.Date.TimeOfDay <= to);
+                }
+            }
 
-            if (!string.IsNullOrEmpty(SelectedChannel))
-                filtered = filtered.Where(s => s.Channel == SelectedChannel);
+            if (SelectedChannel != null)
+                filtered = filtered.Where(s => s.Channel.Name == SelectedChannel.Name);
 
             if (!string.IsNullOrEmpty(SelectedGenre))
                 filtered = filtered.Where(s => s.Genre == SelectedGenre);
@@ -113,6 +152,26 @@ namespace Teleprogram.ViewModels
                 FilteredShows.Add(show);
         }
 
+        private void GetChannelDescription()
+        {
+            if (SelectedShow != null)
+            {
+                var desk = SelectedShow.Channel.Description is null ? "Опис каналу не знайдено" : SelectedShow.Channel.Description;
+                if (desk is null)
+                {
+                    MessageBox.Show($"Опис канал ще не додано", "Інформація про канал", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+                MessageBox.Show($"Опис каналу:\n'{SelectedShow.Channel.Description}'", "Інформація про канал", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            else if (SelectedShow is null)
+            {
+                MessageBox.Show($"Ви не обрали канал!", "Інформація про канал", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            MessageBox.Show($"Йой! Сталася помилка, спробуйте ще раз пізніше", "Помилка!", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
         private void ClearFilters()
         {
             SelectedDay = null;
@@ -129,11 +188,28 @@ namespace Teleprogram.ViewModels
             foreach (var show in AllShows)
                 FilteredShows.Add(show);
         }
+
         private void MakeFavorite()
         {
             if (SelectedShow != null && !FavoritesShows.Contains(SelectedShow))
+            {
                 FavoritesShows.Add(SelectedShow);
+                MessageBox.Show($"'{SelectedShow.Title}' додано в улюблені!", "Успіх", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            else if (SelectedShow != null && FavoritesShows.Contains(SelectedShow))
+            {
+                MessageBox.Show($"Ви вже додали '{SelectedShow.Title}' до обраних!", "Попередження!", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                return;
+            }
+            else if (SelectedShow is null)
+            {
+                MessageBox.Show($"Ви не обрали телепередачу!", "Оберіть телепередачу!", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            MessageBox.Show($"Йой! Сталася помилка, спробуйте ще раз пізніше", "Помилка!", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+
         private void RemoveFavorite()
         {
             if (SelectedShow != null)
@@ -143,22 +219,42 @@ namespace Teleprogram.ViewModels
         private void AddToPlan()
         {
             if (SelectedFavorite == null || string.IsNullOrWhiteSpace(PlannedTime))
+            {
+                MessageBox.Show("Будь ласка, оберіть передачу та введіть час.", "Помилка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
+            }
 
             if (!TimeSpan.TryParse(PlannedTime, out var time))
+            {
+                MessageBox.Show("Час має бути у форматі HH:mm.", "Помилка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
+            }
 
             var dateTime = PlannedDate.Date + time;
 
-            PlannedShows.Add(new TvShow
+            // Перевірка на дублікати
+            bool exists = PlannedShows.Any(ps => ps.Show == SelectedFavorite && ps.PlannedDateTime == dateTime);
+            if (exists)
             {
-                Title = SelectedFavorite.Title,
-                Channel = SelectedFavorite.Channel,
-                Genre = SelectedFavorite.Genre,
-                Date = dateTime
+                MessageBox.Show("Ця передача вже запланована на цей час.", "Попередження", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            PlannedShows.Add(new PlannedShow
+            {
+                Show = SelectedFavorite,
+                PlannedDateTime = dateTime,
+                IsWatched = false
             });
         }
-
+        private void RemovePlannedShow()
+        {
+            if (SelectedPlannedShow != null)
+            {
+                PlannedShows.Remove(SelectedPlannedShow);
+                SelectedPlannedShow = null;
+            }
+        }
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string? prop) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));

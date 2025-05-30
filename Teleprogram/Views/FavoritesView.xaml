@@ -15,7 +15,7 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <DataGrid AutoGenerateColumns="False" Grid.Row="0"
+                <DataGrid AutoGenerateColumns="False" Grid.Row="0" IsReadOnly="True"
                           Name="FavoriteShowsDataGrid"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"

@@ -15,38 +15,44 @@
         </Grid.RowDefinitions>
 
         <!-- Група фільтрів -->
-        <GroupBox Header="Фільтри передач" Margin="0,0,0,10" Grid.Row="0">
-            <StackPanel>
-                <UniformGrid Rows="2" Columns="4" Margin="5">
-                    <Label>День тижня:</Label>
-                    <ComboBox Width="150" Margin="0,3,0,3"
-                              ItemsSource="{Binding DaysOfWeek}"
-                              SelectedItem="{Binding SelectedDay, Mode=TwoWay}"/>
+        <GroupBox Header="🔎 Фільтри передач" Margin="0,0,0,10" Grid.Row="0">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                    <Label>Час:</Label>
-                    <ComboBox Width="150" Margin="0,3,0,3"
-                              ItemsSource="{Binding Times}"
-                              SelectedItem="{Binding SelectedTime, Mode=TwoWay}"/>
+                <!-- Рядок 1 — фільтри -->
+                <UniformGrid Rows="2" Columns="2" Grid.Row="0" Margin="0,0,0,5">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
+                        <Label Content="День тижня:" Width="90" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding DaysOfWeek}" SelectedItem="{Binding SelectedDay, Mode=TwoWay}" Width="120"/>
+                    </StackPanel>
 
-                    <Label>Канал:</Label>
-                    <ComboBox Width="150" Margin="0,3,0,3"
-                              ItemsSource="{Binding Channels}"
-                              SelectedItem="{Binding SelectedChannel, Mode=TwoWay}"/>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
+                        <Label Content="Час:" Width="90" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding Times}" SelectedItem="{Binding SelectedTime, Mode=TwoWay}" Width="120"/>
+                    </StackPanel>
 
-                    <Label>Жанр:</Label>
-                    <ComboBox Width="150" Margin="0,3,0,3"
-                              ItemsSource="{Binding Genres}"
-                              SelectedItem="{Binding SelectedGenre, Mode=TwoWay}"/>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
+                        <Label Content="Канал:" Width="90" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding ChannelList}" SelectedItem="{Binding SelectedChannel, Mode=TwoWay}" DisplayMemberPath="Name" Width="120"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
+                        <Label Content="Жанр:" Width="90" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding Genres}" SelectedItem="{Binding SelectedGenre, Mode=TwoWay}" Width="120"/>
+                    </StackPanel>
                 </UniformGrid>
 
-                <StackPanel HorizontalAlignment="Right">
-                    <Button Content="🔍 Знайти"
-                            Width="100"
-                            Margin="10"
-                            Command="{Binding SearchCommand}"/>
+                <!-- Рядок 2 — кнопки -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="1" Margin="5,10,0,0">
+                    <Button Content="🧽 Очистити фільтр" Command="{Binding ClearCommand}" Margin="5" Padding="10,4"/>
+                    <Button Content="🔍 Знайти" Command="{Binding SearchCommand}" Margin="5" Padding="10,4"/>
                 </StackPanel>
-            </StackPanel>
+            </Grid>
         </GroupBox>
+
 
         <!-- Таблиця передач -->
         <GroupBox Header="📃 Список телепередач за фільтром" Grid.Row="1">
@@ -56,7 +62,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <DataGrid AutoGenerateColumns="False"
+                <DataGrid AutoGenerateColumns="False" IsReadOnly="True"
                           ItemsSource="{Binding FilteredShows}"
                           SelectedItem="{Binding SelectedShow}"
                           Grid.Row="0"
@@ -69,10 +75,9 @@
                         <DataGridTextColumn Header="Назва передачі" Binding="{Binding Title}" Width="2*"/>
                     </DataGrid.Columns>
                 </DataGrid>
-
                 <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
+                    <Button Content="❓ Інформація про канал" Margin="5" Command="{Binding ChannelInfoCommand}"/>
                     <Button Content="➕ Додати до обраного" Margin="5" Command="{Binding FavoriteCommand}"/>
-                    <Button Content="🧽 Очистити фільтр" Margin="5" Command="{Binding ClearCommand}"/>
                 </StackPanel>
             </Grid>
         </GroupBox>
