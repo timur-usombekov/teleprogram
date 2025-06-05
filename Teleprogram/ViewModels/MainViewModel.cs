@@ -1,18 +1,19 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 using Teleprogram.Commands;
 using Teleprogram.Models;
+using Teleprogram.Services;
 
 namespace Teleprogram.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+        private readonly TvProgramDataService _dataService;
+
         #region Collections
         public ObservableCollection<TvShow> AllShows { get; set; } = new();
         public ObservableCollection<TvShow> FilteredShows { get; set; } = new();
@@ -35,8 +36,8 @@ namespace Teleprogram.ViewModels
         public PlannedShow? SelectedPlannedShow { get; set; }
 
         public DateTime PlannedDate { get; set; } = DateTime.Today;
-        public string PlannedTime { get; set; } = "18:00";
-        
+        public string PlannedTime { get; set; } = "9:00";
+
         #region ICommands
         public ICommand SearchCommand { get; set; }
         public ICommand ClearCommand { get; set; }
@@ -49,6 +50,8 @@ namespace Teleprogram.ViewModels
 
         public MainViewModel()
         {
+            _dataService = new TvProgramDataService();
+
             SearchCommand = new RelayCommand(FilterShows);
             ClearCommand = new RelayCommand(ClearFilters);
             FavoriteCommand = new RelayCommand(MakeFavorite);
@@ -57,34 +60,31 @@ namespace Teleprogram.ViewModels
             ChannelInfoCommand = new RelayCommand(GetChannelDescription);
             RemovePlannedShowCommand = new RelayCommand(RemovePlannedShow);
 
-            LoadDataFromJson();
+            LoadInitialData();
             PopulateFilters();
             FilterShows();
         }
-
-
-        private void LoadDataFromJson()
+        private void LoadInitialData()
         {
-            string path = "tvshows.json";
-
-            if (!File.Exists(path))
-                return;
-
             try
             {
-                string json = File.ReadAllText(path, System.Text.Encoding.UTF8);
-                var shows = JsonSerializer.Deserialize<List<TvShow>>(json);
+                AllShows = _dataService.LoadAllShows();
 
-                if (shows != null)
+                FavoritesShows.Clear();
+                foreach (var fav in _dataService.LoadFavorites())
                 {
-                    AllShows.Clear();
-                    foreach (var show in shows)
-                        AllShows.Add(show);
+                    FavoritesShows.Add(fav);
+                }
+
+                PlannedShows.Clear();
+                foreach (var planned in _dataService.LoadPlannedShows())
+                {
+                    PlannedShows.Add(planned);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ex JSON: {ex.Message}");
+                MessageBox.Show($"Помилка при початковому завантаженні даних: {ex.Message}", "Помилка завантаження", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -98,12 +98,9 @@ namespace Teleprogram.ViewModels
             DaysOfWeek.Add("Субота");
             DaysOfWeek.Add("Неділя");
 
-            /*for (int i = 0; i < 24; i++)
-                Times.Add(i.ToString("D2") + ":00");*/
-
-            Times.Add("00:00 - 06:00");
-            Times.Add("06:00 - 12:00");
-            Times.Add("12:00 - 18:00");
+            Times.Add("00:00 - 05:59");
+            Times.Add("06:00 - 11:59");
+            Times.Add("12:00 - 17:59");
             Times.Add("18:00 - 23:59");
 
             var allChannels = AllShows.Select(s => s.Channel)
@@ -194,6 +191,7 @@ namespace Teleprogram.ViewModels
             if (SelectedShow != null && !FavoritesShows.Contains(SelectedShow))
             {
                 FavoritesShows.Add(SelectedShow);
+                _dataService.SaveFavorites(FavoritesShows);
                 MessageBox.Show($"'{SelectedShow.Title}' додано в улюблені!", "Успіх", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
@@ -213,47 +211,73 @@ namespace Teleprogram.ViewModels
         private void RemoveFavorite()
         {
             if (SelectedShow != null)
+            {
                 FavoritesShows.Remove(SelectedShow);
+                _dataService.SaveFavorites(FavoritesShows);
+                OnPropertyChanged(nameof(SelectedShow));
+                return;
+            }
+            MessageBox.Show($"Ви не обрали телепередачу!", "Оберіть телепередачу!", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
         private void AddToPlan()
         {
             if (SelectedFavorite == null || string.IsNullOrWhiteSpace(PlannedTime))
             {
-                MessageBox.Show("Будь ласка, оберіть передачу та введіть час.", "Помилка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Будь ласка, оберіть передачу та введіть час для планування.", "Помилка введення", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            if (!TimeSpan.TryParse(PlannedTime, out var time))
+            TimeSpan time;
+            string[] formats = { @"hh\:mm", @"h\:mm" };
+            if (!TimeSpan.TryParseExact(PlannedTime.Trim(), formats, System.Globalization.CultureInfo.InvariantCulture, out time))
             {
-                MessageBox.Show("Час має бути у форматі HH:mm.", "Помилка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Формат часу має бути HH:mm (наприклад, 09:00 або 14:30). Будь ласка, введіть час з двокрапкою.", "Некоректний формат часу", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var dateTime = PlannedDate.Date + time;
+            var plannedFullDateTime = DateTime.Today.Date + time; 
 
-            // Перевірка на дублікати
-            bool exists = PlannedShows.Any(ps => ps.Show == SelectedFavorite && ps.PlannedDateTime == dateTime);
-            if (exists)
+            if (plannedFullDateTime < DateTime.Now)
             {
-                MessageBox.Show("Ця передача вже запланована на цей час.", "Попередження", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Не можна планувати передачу на минулий час поточного дня. Оберіть майбутній час.", "Помилка планування", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            bool timeSlotOccupied = PlannedShows.Any(ps => ps.PlannedDateTime == plannedFullDateTime);
+
+            if (timeSlotOccupied)
+            {
+                MessageBox.Show($"О {plannedFullDateTime:HH:mm} вже запланована інша передача на {plannedFullDateTime.Date}. Оберіть інший час.", "Час зайнятий", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            bool exactDuplicate = PlannedShows.Any(ps => ps.Show.Equals(SelectedFavorite) && ps.PlannedDateTime.Equals(plannedFullDateTime));
+            if (exactDuplicate)
+            {
+                MessageBox.Show("Ця передача вже запланована на цей час.", "Повторне планування", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
             PlannedShows.Add(new PlannedShow
             {
                 Show = SelectedFavorite,
-                PlannedDateTime = dateTime,
-                IsWatched = false
+                PlannedDateTime = plannedFullDateTime,
             });
+
+            _dataService.SavePlannedShows(PlannedShows); 
+            MessageBox.Show("Передачу успішно додано до плану перегляду!", "Планування успішне", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         private void RemovePlannedShow()
         {
             if (SelectedPlannedShow != null)
             {
                 PlannedShows.Remove(SelectedPlannedShow);
-                SelectedPlannedShow = null;
+                _dataService.SavePlannedShows(PlannedShows);
+                OnPropertyChanged(nameof(SelectedPlannedShow));
+                return;
             }
+            MessageBox.Show($"Ви не обрали телепередачу!", "Оберіть телепередачу!", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string? prop) =>

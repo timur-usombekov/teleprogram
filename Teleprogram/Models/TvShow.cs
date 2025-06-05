@@ -19,5 +19,28 @@ namespace Teleprogram.Models
 
         [JsonPropertyName("title")]
         public string Title { get; set; }
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as TvShow);
+        }
+        public bool Equals(TvShow? other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return Title == other.Title &&
+                   Date.Date == other.Date.Date &&
+                   Date.Hour == other.Date.Hour && 
+                   Date.Minute == other.Date.Minute && 
+                   Channel?.Name == other.Channel?.Name; 
+        }
+
     }
 }
