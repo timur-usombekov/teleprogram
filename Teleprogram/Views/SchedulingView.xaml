@@ -16,37 +16,27 @@
 
         <GroupBox Header="📺 Додавання до плану" Grid.Row="0" Padding="10">
             <StackPanel>
-                <!-- Верхній ряд з трьома елементами -->
                 <Grid Margin="0 0 0 10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
-                        <!-- Label "Передача:" -->
                         <ColumnDefinition Width="250"/>
-                        <!-- ComboBox -->
                         <ColumnDefinition Width="Auto"/>
-                        <!-- Label "Дата:" -->
                         <ColumnDefinition Width="160"/>
-                        <!-- DatePicker -->
                         <ColumnDefinition Width="Auto"/>
-                        <!-- Label "Час:" -->
                         <ColumnDefinition Width="100"/>
-                        <!-- TextBox -->
                     </Grid.ColumnDefinitions>
 
-                    <!-- Передача -->
                     <Label Grid.Column="0" Content="Передача:" VerticalAlignment="Center" Margin="5"/>
                     <ComboBox Grid.Column="1" Margin="5"
                       ItemsSource="{Binding FavoritesShows}"
                       SelectedItem="{Binding SelectedFavorite, Mode=TwoWay}"
                       DisplayMemberPath="Title"/>
-                    <!-- Дата -->
                     <Label Grid.Column="2" Content="Дата:" VerticalAlignment="Center" Margin="5"/>
                     <DatePicker Grid.Column="3" Margin="5"
                         SelectedDate="{Binding PlannedDate, Mode=TwoWay}"
                         DisplayDateStart="{Binding PlannedDate, Mode=OneWay}"/>
                     <TextBox Grid.Column="5" Margin="5"
                      Text="{Binding PlannedTime, Mode=TwoWay}"/>
-                    <!-- Час -->
                     <Label Grid.Column="4" Content="Час:" VerticalAlignment="Center" Margin="5"/>
                     <TextBox Grid.Column="5" Margin="5"
                      Text="{Binding PlannedTime, Mode=TwoWay}"/>
@@ -70,9 +60,7 @@
             <Grid Margin="5">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
-                    <!-- Для DataGrid -->
                     <RowDefinition Height="Auto"/>
-                    <!-- Для кнопки -->
                 </Grid.RowDefinitions>
 
                 <DataGrid AutoGenerateColumns="False"

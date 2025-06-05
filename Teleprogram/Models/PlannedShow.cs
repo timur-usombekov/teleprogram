@@ -2,7 +2,7 @@
 
 public class PlannedShow
 {
-    public TvShow Show { get; set; }    
+    public TvShow Show { get; set; } = null!;
     public DateTime PlannedDateTime { get; set; }
     public override bool Equals(object? obj)
     {

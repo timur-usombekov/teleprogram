@@ -54,7 +54,6 @@ namespace Teleprogram.Services
             try
             {
                 string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FAVORITES_FILE);
-                // Використовуємо JsonSerializerOptions для читабельного формату (Pretty Print)
                 var options = new JsonSerializerOptions { WriteIndented = true };
                 string jsonString = JsonSerializer.Serialize(favorites, options);
                 File.WriteAllText(filePath, jsonString);

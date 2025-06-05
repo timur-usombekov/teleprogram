@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Teleprogram.Models
 {
@@ -12,13 +11,13 @@ namespace Teleprogram.Models
         public string Time => Date.ToString("HH:mm");
 
         [JsonPropertyName("channel")]
-        public TVChannel Channel { get; set; }
+        public TVChannel Channel { get; set; } = null!;
 
         [JsonPropertyName("genre")]
-        public string Genre { get; set; }
+        public string Genre { get; set; } = null!;
 
         [JsonPropertyName("title")]
-        public string Title { get; set; }
+        public string Title { get; set; } = null!;
         public override bool Equals(object? obj)
         {
             return Equals(obj as TvShow);
