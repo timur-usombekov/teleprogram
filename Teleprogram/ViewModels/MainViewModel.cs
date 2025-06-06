@@ -234,6 +234,13 @@ namespace Teleprogram.ViewModels
                 return;
             }
 
+            if (SelectedFavorite.Date > PlannedDate + time)
+            {
+                MessageBox.Show("Ця передача ще не відбулася. Ви не можете її планувати.",
+                              "Помилка планування", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var plannedFullDateTime = DateTime.Today.Date + time; 
 
             if (plannedFullDateTime < DateTime.Now)
@@ -242,11 +249,14 @@ namespace Teleprogram.ViewModels
                 return;
             }
 
-            bool timeSlotOccupied = PlannedShows.Any(ps => ps.PlannedDateTime == plannedFullDateTime);
+            bool timeSlotOccupied = PlannedShows.Any(ps =>
+                    ps.PlannedDateTime.Date == PlannedDate.Date && 
+                    ps.PlannedDateTime.TimeOfDay == PlannedDate.TimeOfDay
+                );
 
             if (timeSlotOccupied)
             {
-                MessageBox.Show($"О {plannedFullDateTime:HH:mm} вже запланована інша передача на {plannedFullDateTime.Date}. Оберіть інший час.", "Час зайнятий", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show($"О {plannedFullDateTime:HH:mm} вже запланована інша передача. Оберіть інший час.", "Час зайнятий", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -260,7 +270,7 @@ namespace Teleprogram.ViewModels
             PlannedShows.Add(new PlannedShow
             {
                 Show = SelectedFavorite,
-                PlannedDateTime = plannedFullDateTime,
+                PlannedDateTime = PlannedDate,
             });
 
             _dataService.SavePlannedShows(PlannedShows); 

@@ -71,7 +71,7 @@
                   Margin="5"
                   Grid.Row="0">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="📆 Дата" Binding="{Binding PlannedDateTime, StringFormat=d}" Width="*"/>
+                        <DataGridTextColumn Header="📆 Дата" Binding="{Binding PlannedDateTime, StringFormat=\{0:dd/MM/yyyy\}}" Width="*"/>
                         <DataGridTextColumn Header="🕒 Час" Binding="{Binding PlannedDateTime, StringFormat=HH:mm}" Width="*"/>
                         <DataGridTextColumn Header="🖥️ Канал" Binding="{Binding Show.Channel.Name}" Width="*"/>
                         <DataGridTextColumn Header="🎭 Жанр" Binding="{Binding Show.Genre}" Width="*"/>

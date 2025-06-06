@@ -23,7 +23,7 @@
                           ItemsSource="{Binding FavoritesShows}"
                           SelectedItem="{Binding SelectedShow}">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="📆 Дата" Width="*" Binding="{Binding Date}"/>
+                        <DataGridTextColumn Header="📆 Дата" Width="*" Binding="{Binding Date, StringFormat=\{0:dd/MM/yyyy\}}"/>
                         <DataGridTextColumn Header="🕒 Час" Width="*" Binding="{Binding Time}"/>
                         <DataGridTextColumn Header="🖥️ Канал" Width="*" Binding="{Binding Channel}"/>
                         <DataGridTextColumn Header="🎭 Жанр" Width="*" Binding="{Binding Genre}"/>

@@ -64,7 +64,11 @@
                           Grid.Row="0"
                           Margin="5">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="📆 Дата" Binding="{Binding Date}" Width="*"/>
+                        <DataGridTextColumn 
+                            Header="📆 Дата" 
+                            Binding="{Binding Date, StringFormat=\{0:dd/MM/yyyy\}}" 
+                            Width="*"
+                        />
                         <DataGridTextColumn Header="🕒 Час" Binding="{Binding Time}" Width="*"/>
                         <DataGridTextColumn Header="🖥️ Канал" Binding="{Binding Channel}" Width="*"/>
                         <DataGridTextColumn Header="🎭 Жанр" Binding="{Binding Genre}" Width="*"/>
