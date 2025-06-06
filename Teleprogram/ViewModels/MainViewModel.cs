@@ -241,14 +241,7 @@ namespace Teleprogram.ViewModels
                 return;
             }
 
-            var plannedFullDateTime = DateTime.Today.Date + time; 
-
-            if (plannedFullDateTime < DateTime.Now)
-            {
-                MessageBox.Show("Не можна планувати передачу на минулий час поточного дня. Оберіть майбутній час.", "Помилка планування", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
+            var plannedFullDateTime = PlannedDate + time; 
             bool timeSlotOccupied = PlannedShows.Any(ps =>
                     ps.PlannedDateTime.Date == PlannedDate.Date && 
                     ps.PlannedDateTime.TimeOfDay == PlannedDate.TimeOfDay
@@ -270,7 +263,7 @@ namespace Teleprogram.ViewModels
             PlannedShows.Add(new PlannedShow
             {
                 Show = SelectedFavorite,
-                PlannedDateTime = PlannedDate,
+                PlannedDateTime = plannedFullDateTime,
             });
 
             _dataService.SavePlannedShows(PlannedShows); 
